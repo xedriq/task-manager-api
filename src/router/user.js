@@ -6,6 +6,9 @@ const auth = require('../middleware/auth') // returns logged in user's user obje
 
 const User = require('../models/user')
 
+// Load Welcome and Farewell email
+const { sendWelcomeEmail, sendFarewellEmail } = require('../emails/account')
+
 // @route POST /users
 // @desc  Create user
 // @access public
@@ -14,6 +17,7 @@ router.post('/users', async (req, res) => {
 
     try {
         await user.save()
+        sendWelcomeEmail(user.email, user.name)
         const token = await user.generateAuthToken()
         res.status(201).send({ user, token })
     }
@@ -119,6 +123,7 @@ router.delete('/users/me', auth, async (req, res) => {
         //     return res.status(404).send({ error: 'No user with that id' })
         // }
         await req.user.remove()
+        sendFarewellEmail(req.user.email, req.user.name)
         res.send({ message: 'user deleted' })
     } catch (error) {
         return res.status(500).send()
