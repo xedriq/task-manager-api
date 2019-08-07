@@ -125,9 +125,8 @@ router.delete('/users/me', auth, async (req, res) => {
 
 })
 
-// Instantiate multer
+// Instantiate multer and settings
 const upload = multer({
-    dest: 'img/avatar',
     limits: {
         fileSize: 1000000,
     },
@@ -140,11 +139,42 @@ const upload = multer({
     }
 })
 
-// @route POST /user/me/avatar
+// @route POST /users/me/avatar
 // @desc Upload user avatar
 // @access Private
-router.post('/users/me/avatar', upload.single('avatar'), (req, res) => {
+router.post('/users/me/avatar', auth, upload.single('avatar'), async (req, res) => {
+    req.user.avatar = req.file.buffer
+    await req.user.save()
     res.send()
+}, (error, req, res, next) => {
+    res.status(400).send({ error: error.message })
+})
+
+// @route DELETE /users/me/avatar
+// @desc Delete current user's avatar
+// @access PRivate
+router.delete('/users/me/avatar', auth, async (req, res) => {
+    req.user.avatar = undefined
+    await req.user.save()
+    res.send({ message: 'Avatar deleted' })
+})
+
+// @route GET users/:id/avatar
+// @desc Avatar url
+// @access Public
+router.get('/users/:id/avatar', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id)
+
+        if (!user || !user.avatar) {
+            throw new Error('No user or avatar image available')
+        }
+
+        res.set('Content-Type', 'image/jpg')
+        res.send(user.avatar)
+    } catch (error) {
+        res.status(404).send()
+    }
 })
 
 module.exports = router
