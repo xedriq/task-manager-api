@@ -17,14 +17,6 @@ const port = process.env.PORT || 3000
 //     }
 // })
 
-const multer = require('multer')
-
-const upload = multer({
-    dest: 'img',
-})
-
-// app.post('/ ')
-
 // Set app to read/accept JSON
 app.use(express.json())
 
